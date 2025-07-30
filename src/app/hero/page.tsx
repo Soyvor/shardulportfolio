@@ -1,7 +1,12 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import TechStackCard from "../../components/TechStackCard";
 import ProjectCard from "../../components/ProjectCard";
+import GitHubCard from "../../components/GitHubCard";
+import { useEffect, useState } from 'react';
+
 import { 
   faHtml5,
   faCss3Alt,
@@ -17,6 +22,28 @@ import {
 import { faCloud } from '@fortawesome/free-solid-svg-icons';
 
 export default function Hero() {
+  const [githubData, setGithubData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchGitHubData() {
+      try {
+        const res = await fetch('/api/github');
+        if (!res.ok) {
+          throw new Error(`Error: ${res.status} ${res.statusText}`);
+        }
+        const data = await res.json();
+        setGithubData(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchGitHubData();
+  }, []);
+
   const techStack = [
     { name: "Next.js", icon: faReact, color: "#000000" },
     { name: "React", icon: faReact, color: "#61DAFB" },
@@ -119,6 +146,14 @@ export default function Hero() {
             <ProjectCard key={index} {...project} />
           ))}
         </div>
+      </div>
+
+      {/* GitHub Profile Section */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-8 pb-12 mt-16">
+        <h2 className="text-3xl font-bold mb-6 text-white">My GitHub Profile</h2>
+        {isLoading && <p className="text-center text-gray-400">Loading GitHub data...</p>}
+        {error && <p className="text-center text-red-500">Error: {error}</p>}
+        {githubData && <GitHubCard data={githubData} />}
       </div>
     </div>
   );
